@@ -33,6 +33,8 @@ Machines are: valve, pump, toyconveyor, toycar, slider, fan.
 
 The wav file were converted in MEL spectrograms in jpg format 224 pixels x 224 pixels in RGB.
 
+![Normal vs anormal spectrograms in valve dataset](./images/illustrations/spectral_domain_mel_valve.png)
+
 ### Model pipeline
 
 Models are **unsupervised**, using deep learning convolution neural networks that are trained from MEL-spectrograms created from the wav files.
