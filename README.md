@@ -41,7 +41,7 @@ Models are **unsupervised**, using deep learning convolution neural networks tha
 
 #### Step 1: get the machine ID
 A first model is applied to detect the machine ID in order to apply a model specific to ID in the second step of the pipeline
-#### Step 2: detect anomalous sound
+#### Step 2: detect anomealous sound
 A second model specific to the machine ID is applied to detect if sound is anomalous.
 #### Performance
 Models offer very good precision (usually over 90%) and relative good recall (usually over 50%).
@@ -58,7 +58,7 @@ Code a REST API to:
   1. get format
   2. normalize format: convert to wav, crop to 10 sec, convert to spectrogram
   3. feed the pipeline
-  4. get the result: normal/anormal, probability
+  4. get the result: normal/anormal
 * add new sounds
   * check format: wav, crop
   * if normal sounds: add to training data
@@ -82,4 +82,4 @@ Code a REST API to:
 * FastAPI
 * Nginx
 * Sqlite
-* Tenserflow with Keras
+* Tensorflow with Keras

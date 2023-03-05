@@ -67,9 +67,7 @@ def gen_mel_arr(file_in, render=False):
     fig.canvas.draw()
     img_arr = np.asarray(fig.canvas.renderer.buffer_rgba(),dtype='int16')[:,:,:3]
     test_tmp = np.empty((0,224,224,3))
-    test_id_isNormal_tmp = np.empty((0,))
-    test_tmp = np.append(test_tmp,[img_arr/255], axis=0)
-    # test_id_isNormal_tmp = np.append(test_id_isNormal_tmp,[0])
+    test_tmp = np.append(test_tmp,[img_arr/255], axis=0) # normalization
     print(f'Shape: {img_arr.shape}')
     #print(f'Array: {img_arr}')
     if render == True:
