@@ -1,14 +1,6 @@
-# module for predicting if sound is anomalous
-# parameters: wav sound file in 16kHz, 16 bits, mono
-# return a tuple with 2 elements:
-## 0 if normal, 1 if anomalous 
-## probability
 
-# check input format
-# convert to correct wav format
-# convert to MEL spectrogram in 224x224 RGB jpg format
-# apply to model
-# return prediction and probability
+# TODO: check input format parameters: wav sound file in 16kHz, 16 bits, mono
+
 
 # common
 import os, os.path, glob
@@ -33,7 +25,6 @@ import librosa
 import librosa.display
 
 # datasets
-
 datasets=['toycar','toyconveyor','fan','pump','slider','valve']
 machine_dict = {'fan':[0,2,4,6],'pump':[0,2,4,6],'slider':[0,2,4,6],'toycar':[1,2,3,4],'toyconveyor':[1,2,3],'valve':[0,2,4,6]}
 threshold_dict = {'fan':[0.866819,0.840211,0.839655,0.573348],'pump':[0.822475,0.826182,0.811622,0.855862],'slider':[0.838541,0.836396,0.809553,0.835531],
@@ -136,18 +127,18 @@ def predict_anomaly(test_array,machine,id):
         prediction = 1 # anomaly
     return prediction
 
-def predict(test_array,machine):
+def predict(machine, file_in):
     """
     predict if numpy array of MEL spectrogram is anomalous
     Parameters
     ----------
-    test_array:
-        numpy array: from MEL spectrogram
+    file_in:
+        string: path and file of the wav file
     machine:
         string: indicates the machine
     Returns
     ----------
         prediction: boolean with 0 for normal 1 for anomaly
     """
-    predicted_id, _ = predict_id(test_array,machine,id)
+    test_array, predicted_id, _ = predict_id(machine,file_in)
     return predict_anomaly(test_array,machine,predicted_id)
