@@ -105,7 +105,7 @@ def predict_id(machine, file_in):
     print(f'Test array shape: {test_array.shape}')
     # predict machine id
     prediction = cnn.predict(test_array)
-    prediction_id = np.argmax(prediction)
+    prediction_id = machine_dict[machine][np.argmax(prediction)]
     confidence = np.max(prediction)
     return (test_array,prediction_id, confidence)
 
@@ -162,7 +162,7 @@ def predict(machine, file_in):
 
 # predict('fan','../../sounds/samples/normal/fan/normal_id_00_00000000.wav')
 ds = 'fan'
-file = f'../../sounds/samples/normal/{ds}/normal_id_04_00000003.wav'
+file = f'../../sounds/samples/normal/{ds}/normal_id_06_00000013.wav'
 
 # test_array, p, _ = predict_id(ds, file)
 # id= machine_dict['fan'][p]
@@ -170,3 +170,7 @@ file = f'../../sounds/samples/normal/{ds}/normal_id_04_00000003.wav'
 # isNormal = predict_anomaly(test_array,ds,id)
 # result = 'Normal' if isNormal == 0 else 'Anomaly'
 # print(f'Result: {result}')
+
+isNormal = predict(ds,file)
+result = 'Normal' if isNormal == 0 else 'Anomaly'
+print(f'Result: {result}')
