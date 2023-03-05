@@ -31,42 +31,52 @@ threshold_dict = {'fan':[0.866819,0.840211,0.839655,0.573348],'pump':[0.822475,0
     'toycar':[0.759323,0.895921,0.836600,0.834488],'toyconveyor':[0.900976,0.850254,0.837047],'valve':[0,2,4,6]}
 contamination_dict = {'fan':0.7867,'pump':0.5327,'slider':0.6899,'toycar':0.4307,'toyconveyor': 0.3163,'valve':[0,2,4,6]}
 
+# path
+modelDir = '../../models/'
+
 # functions to generate from wav file
 # 1 channel, precision 16bits, sampling 16kHz, 160000 frames, duration 10 sec (11 sec for toycar)
 # to numpy array (224,224,3)
 # from image file generated  MEL spectrogram
 
 def gen_mel_arr(file_in, render=False):
-  """
-  generate a numpy array of the wav file with shape (224,224,3) of MEL spectrogram
-  Parameters
+    """
+    generate a numpy array of the wav file with shape (224,224,3) of MEL spectrogram
+    Parameters
     ----------
     file_in: str
-      input filename with path
+        input filename with path
     render: bool
-      True: display image and shape
+        True: display image and shape
     Returns
     ----------
     numpy array of the image
-  """
-  signal, sr = librosa.load(file_in, sr=None)
-  fig, ax = plt.subplots(figsize=(3.12,3.12))
-  S = librosa.feature.melspectrogram(y=signal, sr=sr, n_mels=128,fmax=8000)
-  mel = librosa.display.specshow(librosa.power_to_db(S, ref=np.max),
-                                 # x_axis='time',
-                                 # y_axis='mel',
-                                 sr=sr,
-                                 fmax=8000,
-                                 ax=ax)
-  ax.axis('off')
-  plt.subplots_adjust(wspace=0, hspace=0)
-  fig.canvas.draw()
-  img_arr = np.asarray(fig.canvas.renderer.buffer_rgba(),dtype='int16')[:,:,:3]
-  if render == True:
-    plt.show()
+    """
+    signal, sr = librosa.load(file_in, sr=None)
+    # fig, ax = plt.subplots(figsize=(3.12,3.12))
+    fig, ax = plt.subplots(figsize=(2.24,2.24))
+    S = librosa.feature.melspectrogram(y=signal, sr=sr, n_mels=128,fmax=8000)
+    mel = librosa.display.specshow(librosa.power_to_db(S, ref=np.max),
+                                    # x_axis='time',
+                                    # y_axis='mel',
+                                    sr=sr,
+                                    fmax=8000,
+                                    ax=ax)
+    ax.axis('off')
+    plt.subplots_adjust(wspace=0, hspace=0)
+    fig.canvas.draw()
+    img_arr = np.asarray(fig.canvas.renderer.buffer_rgba(),dtype='int16')[:,:,:3]
+    test_tmp = np.empty((0,224,224,3))
+    test_id_isNormal_tmp = np.empty((0,))
+    test_tmp = np.append(test_tmp,[img_arr/255], axis=0)
+    # test_id_isNormal_tmp = np.append(test_id_isNormal_tmp,[0])
     print(f'Shape: {img_arr.shape}')
-  plt.close(fig)
-  return img_arr
+    #print(f'Array: {img_arr}')
+    if render == True:
+        plt.show()
+        print(f'Shape: {img_arr.shape}')
+    plt.close(fig)
+    return test_tmp
 
 # models
 
@@ -88,13 +98,15 @@ def predict_id(machine, file_in):
     if machine not in datasets:
         return (0,-1,0)
     # load model from machine
-    cnn = tf.keras.models.load_model(f'./models/id_predictions/{machine}/guess_id_{machine}')
+    print(f'Loading model: {machine}')
+    cnn = tf.keras.models.load_model(f'{modelDir}/id_predictions/{machine}/guess_id_{machine}')
     # generate MEL array
     test_array = gen_mel_arr(file_in, render=False)
+    print(f'Test array shape: {test_array.shape}')
     # predict machine id
     prediction = cnn.predict(test_array)
     prediction_id = np.argmax(prediction)
-    confidence = prediction[prediction_id]
+    confidence = np.max(prediction)
     return (test_array,prediction_id, confidence)
 
 def ssim(input_img, output_img):
@@ -118,9 +130,12 @@ def predict_anomaly(test_array,machine,id):
     ----------
         prediction: boolean with 0 for normal 1 for anomaly
     """
-    ae_conv = tf.keras.models.load_model(f'./models/anomaly_detection/{machine}/detect_id_{id}_{machine}', custom_objects={"ssim": ssim })
+    ae_conv = tf.keras.models.load_model(f'{modelDir}/anomaly_detection/{machine}/detect_id_{id}_{machine}', custom_objects={"ssim": ssim })
     test_autoencoded = ae_conv.predict(test_array)
-    test_sim_index = sk_ssim(test_array,test_autoencoded,multichannel=True)
+    print(f'Test_autoencoded shape: {np.squeeze(test_autoencoded).shape}')
+    print(f'Test_array shape: {np.squeeze(test_array).shape}')
+    print(f'Test_autoencoded: {np.squeeze(test_autoencoded)}')
+    test_sim_index = sk_ssim(np.squeeze(test_array),np.squeeze(test_autoencoded),multichannel=True)
     if test_sim_index > threshold_dict[machine][machine_dict.index(id)]:
         prediction = 0 # normal
     else:
@@ -141,4 +156,17 @@ def predict(machine, file_in):
         prediction: boolean with 0 for normal 1 for anomaly
     """
     test_array, predicted_id, _ = predict_id(machine,file_in)
-    return predict_anomaly(test_array,machine,predicted_id)
+    print(f'Predicted id: {predicted_id}')
+    # return predict_anomaly(test_array,machine,predicted_id)
+    return 0
+
+# predict('fan','../../sounds/samples/normal/fan/normal_id_00_00000000.wav')
+ds = 'fan'
+file = f'../../sounds/samples/normal/{ds}/normal_id_04_00000003.wav'
+
+# test_array, p, _ = predict_id(ds, file)
+# id= machine_dict['fan'][p]
+# print(f'Predicted id: {id}')
+# isNormal = predict_anomaly(test_array,ds,id)
+# result = 'Normal' if isNormal == 0 else 'Anomaly'
+# print(f'Result: {result}')
